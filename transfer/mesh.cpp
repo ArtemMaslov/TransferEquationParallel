@@ -103,6 +103,16 @@ const Mesh::MeshCell* Mesh::GetInnerCells() const
     return InnerCells;
 }
 
+const Mesh::MeshCell* Mesh::GetStartCell() const
+{
+    return StartBoundary;
+}
+
+const Mesh::MeshCell* Mesh::GetStopCell() const
+{
+    return StopBoundary;
+}
+
 static void Align(std::stringstream& str, size_t alignLen)
 {
     for (size_t st = 0; st < alignLen; st++)
@@ -133,14 +143,14 @@ static void PrintColumn(std::stringstream& capStr,
         << x
         << " ";
 
-    capStr.seekg(0, std::ios::end);
-    size_t capLen = capStr.tellg();
+    capStr.seekp(0, std::ios::end);
+    size_t capLen = capStr.tellp();
 
-    valueStr.seekg(0, std::ios::end);
-    size_t valueLen = valueStr.tellg();
+    valueStr.seekp(0, std::ios::end);
+    size_t valueLen = valueStr.tellp();
 
-    xStr.seekg(0, std::ios::end);
-    size_t xLen = xStr.tellg();
+    xStr.seekp(0, std::ios::end);
+    size_t xLen = xStr.tellp();
 
     size_t alignMax = std::max(capLen, std::max(valueLen, xLen));
     
@@ -149,7 +159,7 @@ static void PrintColumn(std::stringstream& capStr,
     Align(xStr, alignMax - xLen);
 }
 
-void Mesh::Print(Direction dir, Time time) const
+std::stringstream Mesh::Print(Direction dir, Time time) const
 {
     std::stringstream cap;
     std::stringstream value;
@@ -159,11 +169,6 @@ void Mesh::Print(Direction dir, Time time) const
     value << std::fixed;
     x.precision(4);
     x << std::fixed;
-
-    if (time == Time::Curr)
-        std::cout << "Time == current\n";
-    else
-        std::cout << "Time == previous\n";
 
     PrintColumn(cap, value, x, "", "value", "x");
         
@@ -182,5 +187,11 @@ void Mesh::Print(Direction dir, Time time) const
         PrintColumn(cap, value, x, "RB", StartBoundary->GetValue(time, Type), StartBoundary->x);
     }
 
-    std::cout << cap.str() << "\n" << x.str() << "\n" << value.str() << "\n" << std::endl;
+    if (time == Time::Curr)
+        cap << "Time == current\n";
+    else
+        cap << "Time == previous\n";
+
+    cap << "\n" << x.str() << "\n" << value.str() << "\n" << std::endl;
+    return cap;
 }

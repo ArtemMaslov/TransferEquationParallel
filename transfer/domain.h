@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-
+#include <sstream>
 #include "mesh.h"
 
 class Domain
@@ -17,18 +17,10 @@ private:
 public:
     Domain(const size_t meshSize, const double x1, ::Direction direction);
 
-    void ComputeStartBoundary3(double t);
-    void ComputeStopBoundary3(double t);
+    void ComputeStartBoundary(double t);
+    void ComputeStopBoundary(double t);
 
-    void ComputeStartBoundary4(double t);
-    void ComputeStopBoundary4(double t);
-
-    void ComputeStartBoundary2(double t);
-    void ComputeStopBoundary2(double t);
-
-    void ComputeInnerCells3(double t);
-    void ComputeInnerCells4(double t);
-    void ComputeInnerCells2(double t);
+    void ComputeInnerCells(double t);
 
     void SetSpatialBoundary();
 
@@ -41,9 +33,12 @@ public:
     void SetStartBoundary(double value);
     void SetStopBoundary(double value);
 
+    const Mesh::MeshCell* GetLeftCell() const;
+    const Mesh::MeshCell* GetRightCell() const;
+
     void NextTimeStep();
 
     const ::Mesh& GetMesh() const;
 
-    void Print(Time time) const;
+    std::stringstream Print(Time time) const;
 };

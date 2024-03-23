@@ -1,4 +1,5 @@
-COMP_MPI = ~/dev/mpi/OpenMPI/bin/mpic++ -fpic -fopenmp -std=c++20 -Wall -Wextra -O3 -msse2 -mavx -L/home/artem/dev/mpi/OpenMPI/lib -lmpi 
+COMP_MPI = mpic++ -fpic -std=c++20 -Wall -Wextra -O3 -msse2 -mavx -lmpi
+MPIRUN = mpirun
 
 #############################################################################################################################
 
@@ -9,10 +10,12 @@ spi: seqpi
 	./seqpi 1e9
 
 ppi: Pi.cpp
+	LD_LIBRARY_PATH=""
+	PATH=""
 	${COMP_MPI} Pi.cpp -o ppi
 
 pi: ppi
-	mpirun -np 6 ./ppi 1e9
+	${MPIRUN} -np 6 ./ppi 1e9
 
 tpi: ppi
 	python3 ./test_performance.py 6 1 2 3 4 5 6 3 ./ppi 1e9
@@ -20,15 +23,16 @@ tpi: ppi
 #############################################################################################################################
 
 sync_time: sync_time.cpp
+	LD_LIBRARY_PATH=""
 	${COMP_MPI} sync_time.cpp -o sync_time
 
 st: sync_time
-	mpirun -np 2 ./sync_time
+	${MPIRUN} -np 2 ./sync_time
 
 #############################################################################################################################
 
-COMP_TRANSFER = ~/dev/mpi/OpenMPI/bin/mpic++ -L/home/artem/dev/mpi/OpenMPI/lib -lmpi 
-ARGS = -g3 -fpic -fopenmp -std=c++20 -Wall -Wextra -O0# -O3 -msse2 -mavx
+COMP_TRANSFER = mpic++ -lmpi 
+ARGS = -g3 -fpic -std=c++20 -Wall -Wextra -O3 -msse2 -mavx
 
 obj/mesh.o: transfer/mesh.cpp transfer/mesh.h transfer/constant.h
 	${COMP_TRANSFER} ${ARGS} -c transfer/mesh.cpp -o obj/mesh.o
@@ -57,9 +61,10 @@ str: tr tr_seq
 obj:
 	mkdir -p obj
 
-t: tr
-	python3 ./test_performance.py 6 1 2 3 4 5 6 1 ./tr
+ttr: tr
+	python3 ./test_transfer.py 4 1 2 3 4 3 ./tr
+#	python3 ./test_transfer.py 6 1 2 3 4 5 6 1 ./tr
 
 #############################################################################################################################
 
-.PHONY: spi pi st tpi st t str
+.PHONY: spi pi st tpi st t str run_tr

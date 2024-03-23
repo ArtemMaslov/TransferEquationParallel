@@ -25,9 +25,9 @@ const double PeriodX = a*PeriodT; // m
 const double T = PeriodT * 1;
 const double X = PeriodX * 3; // m
 
-const size_t MeshXIntervals = 0.5e4;
+const size_t MeshXIntervals = 0.5e5;
 const size_t MeshXPoints = MeshXIntervals - 1;
-const size_t MeshTPoints = 0.3e4;
+const size_t MeshTPoints = 0.3e5;
 const double tau = T / MeshTPoints;
 const double h   = X / MeshXIntervals;
 const double Co  = a * tau / h;

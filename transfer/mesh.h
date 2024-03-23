@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <sstream>
 #include <memory>
 
 enum class Time
@@ -60,8 +61,10 @@ public:
     void NextTimeStep();
 
     const MeshCell* GetInnerCells() const;
+    const MeshCell* GetStartCell() const;
+    const MeshCell* GetStopCell() const;
 
-    void Print(Direction dir, Time time) const;
+    std::stringstream Print(Direction dir, Time time) const;
 
     MeshType GetType() const
     {

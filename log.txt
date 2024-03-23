@@ -1,0 +1,17 @@
+Mesh:
+	X [0, 3] m, step = h   = 6e-05 m
+	T [0, 1] s, step = tau = 3.33333e-05 s
+Velocity = 1 m/s
+Courant number = 0.555556
+
+Procs count = 4
+
+ProcRank = 0
+MeshSize = 12499
+ProcRank = 2
+MeshSize = 12499
+ProcRank = 1
+MeshSize = 12499
+ProcRank = 3
+MeshSize = 12502
+Execution time = 4.87251 sec

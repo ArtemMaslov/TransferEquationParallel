@@ -38,10 +38,10 @@ int main()
 
     while (Double::IsLessEqual(t, T))
     {
-        domain.ComputeStartBoundary4(t);
+        domain.ComputeStartBoundary(t);
 
-        domain.ComputeInnerCells4(t);
-        domain.ComputeStopBoundary4(t);
+        domain.ComputeInnerCells(t);
+        domain.ComputeStopBoundary(t);
 
         domain.SetTimeBoundary(t);
         domain.ApproximateTimeBoundary(t);

@@ -3,7 +3,7 @@
         {
             "label":   "Build transfer equation seq",
             "type":    "shell",
-            "command": "make tr_seq",
+            "command": "make tr",
             "group": 
             {
                 "kind": "build",

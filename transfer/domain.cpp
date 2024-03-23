@@ -15,57 +15,7 @@ double Domain::GetXRight()
     return xLeft + h * (Mesh.MeshSize + 1);
 }
 
-void Domain::ComputeStartBoundary3(double t)
-{
-    double u_k_mm1 = 0;
-    double u_k_mp1 = 0;
-    double f_k_m   = 0;
-
-    if (Direction == Direction::Fwd)
-    {
-        // start mesh boundary = left domain boundary.
-        u_k_mm1 = Mesh.GetStartBoundaryValue(Time::Prev);
-        u_k_mp1 = Mesh.GetValue(1, Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(xLeft + h, t - tau);
-    }
-    else
-    {
-        // start mesh boundary = right domain boundary.
-        u_k_mm1 = Mesh.GetValue(1, Time::Prev);
-        u_k_mp1 = Mesh.GetStartBoundaryValue(Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(GetXRight() - h, t - tau);
-    }
-
-    double value = ComputeCellCentral3Points(u_k_mm1, u_k_mp1, f_k_m);
-    Mesh.SetValue(0, Time::Curr, value);
-}
-
-void Domain::ComputeStopBoundary3(double t)
-{
-    double u_k_mm1 = 0;
-    double u_k_mp1 = 0;
-    double f_k_m   = 0;
-
-    if (Direction == Direction::Fwd)
-    {
-        // stop mesh boundary = right domain boundary.
-        u_k_mm1 = Mesh.GetValue(Mesh.MeshSize - 2, Time::Prev);
-        u_k_mp1 = Mesh.GetStopBoundaryValue(Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(GetXRight() - h, t - tau);
-    }
-    else
-    {
-        // stop mesh boundary = left domain boundary.
-        u_k_mm1 = Mesh.GetStopBoundaryValue(Time::Prev);
-        u_k_mp1 = Mesh.GetValue(Mesh.MeshSize - 2, Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(xLeft + h, t - tau);
-    }
-    
-    double value = ComputeCellCentral3Points(u_k_mm1, u_k_mp1, f_k_m);
-    Mesh.SetValue(Mesh.MeshSize - 1, Time::Curr, value);
-}
-
-void Domain::ComputeStartBoundary4(double t)
+void Domain::ComputeStartBoundary(double t)
 {
     double u_k_mm1 = 0;
     double u_k_m   = 0;
@@ -93,7 +43,7 @@ void Domain::ComputeStartBoundary4(double t)
     Mesh.SetValue(0, Time::Curr, value);
 }
 
-void Domain::ComputeStopBoundary4(double t)
+void Domain::ComputeStopBoundary(double t)
 {
     double u_k_mm1 = 0;
     double u_k_m   = 0;
@@ -121,93 +71,7 @@ void Domain::ComputeStopBoundary4(double t)
     Mesh.SetValue(Mesh.MeshSize - 1, Time::Curr, value);
 }
 
-void Domain::ComputeStartBoundary2(double t)
-{
-    double u_k_mm1 = 0;
-    double u_k_m   = 0;
-    double u_k_mp1 = 0;
-    double f_k_m   = 0;
-
-    if (Direction == Direction::Fwd)
-    {
-        // start mesh boundary = left domain boundary.
-        u_k_mm1 = Mesh.GetStartBoundaryValue(Time::Prev);
-        u_k_m   = Mesh.GetValue(0, Time::Prev);
-        u_k_mp1 = Mesh.GetValue(1, Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(xLeft + h, t - tau);
-    }
-    else
-    {
-        // start mesh boundary = right domain boundary.
-        u_k_mm1 = Mesh.GetValue(1, Time::Prev);
-        u_k_m   = Mesh.GetValue(0, Time::Prev);
-        u_k_mp1 = Mesh.GetStartBoundaryValue(Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(GetXRight() - h, t - tau);
-    }
-
-    double value = ComputeCellLeftCorner(u_k_mm1, u_k_m, f_k_m);
-    Mesh.SetValue(0, Time::Curr, value);
-}
-
-void Domain::ComputeStopBoundary2(double t)
-{
-    double u_k_mm1 = 0;
-    double u_k_m   = 0;
-    double u_k_mp1 = 0;
-    double f_k_m   = 0;
-
-    if (Direction == Direction::Fwd)
-    {
-        // stop mesh boundary = right domain boundary.
-        u_k_mm1 = Mesh.GetValue(Mesh.MeshSize - 2, Time::Prev);
-        u_k_m   = Mesh.GetValue(Mesh.MeshSize - 1, Time::Prev);
-        u_k_mp1 = Mesh.GetStopBoundaryValue(Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(GetXRight() - h, t - tau);
-    }
-    else
-    {
-        // stop mesh boundary = left domain boundary.
-        u_k_mm1 = Mesh.GetStopBoundaryValue(Time::Prev);
-        u_k_m   = Mesh.GetValue(Mesh.MeshSize - 1, Time::Prev);
-        u_k_mp1 = Mesh.GetValue(Mesh.MeshSize - 2, Time::Prev);
-        f_k_m   = ComputeGeneratorFunction(xLeft + h, t - tau);
-    }
-    
-    double value = ComputeCellLeftCorner(u_k_mm1, u_k_m, f_k_m);
-    Mesh.SetValue(Mesh.MeshSize - 1, Time::Curr, value);
-}
-
-void Domain::ComputeInnerCells3(double t)
-{
-    if (Direction == Direction::Fwd)
-    {
-        double x = xLeft + h;
-        for (size_t st = 1; st < Mesh.MeshSize - 1; st++)
-        {
-            double u_k_mm1 = Mesh.GetValue(st - 1, Time::Prev);
-            double u_k_mp1 = Mesh.GetValue(st + 1, Time::Prev);
-            double f_k_m   = ComputeGeneratorFunction(x, t - tau);
-            double value   = ComputeCellCentral3Points(u_k_mm1, u_k_mp1, f_k_m);
-            Mesh.SetValue(st, Time::Curr, value);
-            x += h;
-        }
-    }
-    else
-    {
-        double x = GetXRight() - h;
-        for (size_t st = 1; st < Mesh.MeshSize - 1; st++)
-        {
-            double u_k_mm1 = Mesh.GetValue(st + 1, Time::Prev);
-            double u_k_mp1 = Mesh.GetValue(st - 1, Time::Prev);
-            double f_k_m   = ComputeGeneratorFunction(x, t - tau);
-            double value   = ComputeCellCentral3Points(u_k_mm1, u_k_mp1, f_k_m);
-            Mesh.SetValue(st, Time::Curr, value);
-            x -= h;
-        }
-    }
-}
-
-void Domain::ComputeInnerCells4(double t)
+void Domain::ComputeInnerCells(double t)
 {
     if (Direction == Direction::Fwd)
     {
@@ -233,38 +97,6 @@ void Domain::ComputeInnerCells4(double t)
             double u_k_mp1 = Mesh.GetValue(st - 1, Time::Prev);
             double f_k_m   = ComputeGeneratorFunction(x, t - tau);
             double value   = ComputeCellCentral4Points(u_k_mm1, u_k_m,  u_k_mp1, f_k_m);
-            Mesh.SetValue(st, Time::Curr, value);
-            x -= h;
-        }
-    }
-}
-
-void Domain::ComputeInnerCells2(double t)
-{
-    if (Direction == Direction::Fwd)
-    {
-        double x = xLeft + h;
-        for (size_t st = 1; st < Mesh.MeshSize - 1; st++)
-        {
-            double u_k_mm1 = Mesh.GetValue(st - 1, Time::Prev);
-            double u_k_m   = Mesh.GetValue(st,     Time::Prev);
-            double u_k_mp1 = Mesh.GetValue(st + 1, Time::Prev);
-            double f_k_m   = ComputeGeneratorFunction(x, t - tau);
-            double value   = ComputeCellLeftCorner(u_k_mm1, u_k_m, f_k_m);
-            Mesh.SetValue(st, Time::Curr, value);
-            x += h;
-        }
-    }
-    else
-    {
-        double x = GetXRight() - h;
-        for (size_t st = 1; st < Mesh.MeshSize - 1; st++)
-        {
-            double u_k_mm1 = Mesh.GetValue(st + 1, Time::Prev);
-            double u_k_m   = Mesh.GetValue(st,     Time::Prev);
-            double u_k_mp1 = Mesh.GetValue(st - 1, Time::Prev);
-            double f_k_m   = ComputeGeneratorFunction(x, t - tau);
-            double value   = ComputeCellLeftCorner(u_k_mm1, u_k_m, f_k_m);
             Mesh.SetValue(st, Time::Curr, value);
             x -= h;
         }
@@ -362,7 +194,23 @@ const ::Mesh& Domain::GetMesh() const
     return Mesh;
 }
 
-void Domain::Print(Time time) const
+std::stringstream Domain::Print(Time time) const
 {
-    Mesh.Print(Direction, time);
+    return Mesh.Print(Direction, time);
+}
+
+const Mesh::MeshCell* Domain::GetLeftCell() const
+{
+    if (Direction == Direction::Fwd)
+        return Mesh.GetStartCell();
+    else
+        return Mesh.GetStopCell();
+}
+
+const Mesh::MeshCell* Domain::GetRightCell() const
+{
+    if (Direction == Direction::Fwd)
+        return Mesh.GetStopCell();
+    else
+        return Mesh.GetStartCell();
 }

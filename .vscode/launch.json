@@ -6,7 +6,7 @@
             "name": "Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/tr_seq",
+            "program": "${workspaceRoot}/tr",
             "cwd": "${workspaceRoot}",
             "args": 
             [

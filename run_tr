@@ -1,0 +1,1 @@
+~/dev/mpi/OpenMPI/bin/mpirun -np 2 ./tr
