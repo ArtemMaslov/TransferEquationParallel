@@ -6,7 +6,7 @@
 #include "constant.h"
 #include "mesh.h"
 
-Mesh::Mesh(size_t innerCellsCount, double xLeft, Direction dir) :
+Mesh::Mesh(size_t innerCellsCount, double xLeft) :
     MeshSize(innerCellsCount),
     Type(MeshType::FirstIsPrev),
     CellsArray(std::make_unique<MeshCell[]>(MeshSize + 2)),
@@ -14,28 +14,14 @@ Mesh::Mesh(size_t innerCellsCount, double xLeft, Direction dir) :
     InnerCells(StartBoundary + 1),
     StopBoundary(InnerCells + MeshSize)
 {
-    if (dir == Direction::Fwd)
+    StartBoundary->x = xLeft;
+    double x = xLeft + h;
+    for (size_t st = 0; st < innerCellsCount; st++)
     {
-        StartBoundary->x = xLeft;
-        double x = xLeft + h;
-        for (size_t st = 0; st < innerCellsCount; st++)
-        {
-            InnerCells[st].x = x;
-            x += h;
-        }
-        StopBoundary->x = x;
+        InnerCells[st].x = x;
+        x += h;
     }
-    else
-    {
-        StopBoundary->x = xLeft;
-        double x = xLeft + h;
-        for (int st = innerCellsCount - 1; st >= 0; st--)
-        {
-            InnerCells[st].x = x;
-            x += h;
-        }
-        StartBoundary->x = x;
-    }
+    StopBoundary->x = x;
 }
 
 double& Mesh::MeshCell::GetValue(Time time, MeshType type)
@@ -159,7 +145,7 @@ static void PrintColumn(std::stringstream& capStr,
     Align(xStr, alignMax - xLen);
 }
 
-std::stringstream Mesh::Print(Direction dir, Time time) const
+std::stringstream Mesh::Print(Time time) const
 {
     std::stringstream cap;
     std::stringstream value;
@@ -171,21 +157,11 @@ std::stringstream Mesh::Print(Direction dir, Time time) const
     x << std::fixed;
 
     PrintColumn(cap, value, x, "", "value", "x");
-        
-    if (dir == Direction::Fwd)
-    {
-        PrintColumn(cap, value, x, "LB", StartBoundary->GetValue(time, Type), StartBoundary->x);
-        for (size_t st = 0; st < MeshSize; st++)
-            PrintColumn(cap, value, x, "", InnerCells[st].GetValue(time, Type), InnerCells[st].x);
-        PrintColumn(cap, value, x, "RB", StopBoundary->GetValue(time, Type), StopBoundary->x);
-    }
-    else
-    {
-        PrintColumn(cap, value, x, "LB", StopBoundary->GetValue(time, Type), StopBoundary->x);
-        for (int st = MeshSize - 1; st >= 0; st--)
-            PrintColumn(cap, value, x, "", InnerCells[st].GetValue(time, Type), InnerCells[st].x);
-        PrintColumn(cap, value, x, "RB", StartBoundary->GetValue(time, Type), StartBoundary->x);
-    }
+    
+    PrintColumn(cap, value, x, "LB", StartBoundary->GetValue(time, Type), StartBoundary->x);
+    for (size_t st = 0; st < MeshSize; st++)
+        PrintColumn(cap, value, x, "", InnerCells[st].GetValue(time, Type), InnerCells[st].x);
+    PrintColumn(cap, value, x, "RB", StopBoundary->GetValue(time, Type), StopBoundary->x);
 
     if (time == Time::Curr)
         cap << "Time == current\n";

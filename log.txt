@@ -4,14 +4,18 @@ Mesh:
 Velocity = 1 m/s
 Courant number = 0.555556
 
-Procs count = 4
+Procs count = 6
 
 ProcRank = 0
-MeshSize = 12499
+MeshSize = 8333
 ProcRank = 2
-MeshSize = 12499
-ProcRank = 1
-MeshSize = 12499
+MeshSize = 8333
 ProcRank = 3
-MeshSize = 12502
-Execution time = 4.87251 sec
+MeshSize = 8333
+ProcRank = 1
+MeshSize = 8333
+ProcRank = 5
+MeshSize = 8334
+ProcRank = 4
+MeshSize = 8333
+Execution time = 5.59682 sec

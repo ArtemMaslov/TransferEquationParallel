@@ -62,8 +62,7 @@ obj:
 	mkdir -p obj
 
 ttr: tr
-	python3 ./test_transfer.py 4 1 2 3 4 3 ./tr
-#	python3 ./test_transfer.py 6 1 2 3 4 5 6 1 ./tr
+	python3 ./test_transfer.py 6 1 2 3 4 5 6 1 ./tr
 
 #############################################################################################################################
 

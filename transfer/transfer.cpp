@@ -105,31 +105,38 @@ int main(int argc, char* argv[])
 
     while (Double::IsLessEqual(t, T))
     {
-        domain.ComputeStartBoundary(t);
+        if (direction == Direction::Fwd)
+            domain.ComputeStartBoundary(t);
+        else
+            domain.ComputeStopBoundary(t);
 
         if (procRank % 2 == 0 && procRank + 1 < procsCount)
         {
-            startCellSender = domain.GetStartInnerCell();
+            stopCellSender = domain.GetStopInnerCell();
 
             if (printTimeSteps)
             {
                 std::stringstream str;
-                str << "ProcRank = " << procRank << "\nSend startCell\n" << std::endl;
+                str << "ProcRank = " << procRank << "\nSend stopCell\n" << std::endl;
                 MPI_File_write_shared(log, str.str().c_str(), str.tellp(), MPI_CHAR, MPI_STATUS_IGNORE);
             }
 
-            MPI_Isend(&startCellSender, 1, MPI_DOUBLE, procRank + 1, SyncBoundary, MPI_COMM_WORLD, &startRequest);
+            MPI_Isend(&stopCellSender, 1, MPI_DOUBLE, procRank + 1, SyncBoundary, MPI_COMM_WORLD, &stopRequest);
 
             if (printTimeSteps)
             {
                 std::stringstream str;
-                str << "ProcRank = " << procRank << "\nStartCell sended. Continuing...\n" << std::endl;
+                str << "ProcRank = " << procRank << "\nStopCell sended. Continuing...\n" << std::endl;
                 MPI_File_write_shared(log, str.str().c_str(), str.tellp(), MPI_CHAR, MPI_STATUS_IGNORE);
             }
         }
 
         domain.ComputeInnerCells(t);
-        domain.ComputeStopBoundary(t);
+
+        if (direction == Direction::Fwd)
+            domain.ComputeStopBoundary(t);
+        else
+            domain.ComputeStartBoundary(t);
 
         if (procRank == 0)
         {
@@ -142,6 +149,7 @@ int main(int argc, char* argv[])
 
             domain.SetTimeBoundary(t);
         }
+
         if (procRank == procsCount - 1)
         {
             if (printTimeSteps)
@@ -216,12 +224,12 @@ int main(int argc, char* argv[])
                 if (printTimeSteps)
                 {
                     std::stringstream str;
-                    str << "ProcRank = " << procRank << "\nRecv start cell.\n" << std::endl;
+                    str << "ProcRank = " << procRank << "\nRecv stop cell.\n" << std::endl;
                     MPI_File_write_shared(log, str.str().c_str(), str.tellp(), MPI_CHAR, MPI_STATUS_IGNORE);
                 }
                     
-                MPI_Recv(&startCellReceiver, 1, MPI_DOUBLE, procRank + 1, SyncBoundary, MPI_COMM_WORLD, nullptr);
-                domain.SetStartBoundary(startCellReceiver);
+                MPI_Recv(&stopCellReceiver, 1, MPI_DOUBLE, procRank + 1, SyncBoundary, MPI_COMM_WORLD, nullptr);
+                domain.SetStopBoundary(stopCellReceiver);
             }
 
             if (procRank - 1 > 0)
@@ -229,22 +237,22 @@ int main(int argc, char* argv[])
                 if (printTimeSteps)
                 {
                     std::stringstream str;
-                    str << "ProcRank = " << procRank << "\nRecv stop cell.\n" << std::endl;
+                    str << "ProcRank = " << procRank << "\nRecv start cell.\n" << std::endl;
                     MPI_File_write_shared(log, str.str().c_str(), str.tellp(), MPI_CHAR, MPI_STATUS_IGNORE);
                 }
                     
-                MPI_Recv(&stopCellReceiver, 1, MPI_DOUBLE, procRank - 1, SyncBoundary, MPI_COMM_WORLD, nullptr);
-                domain.SetStopBoundary(stopCellReceiver);
+                MPI_Recv(&startCellReceiver, 1, MPI_DOUBLE, procRank - 1, SyncBoundary, MPI_COMM_WORLD, nullptr);
+                domain.SetStartBoundary(startCellReceiver);
 
                 if (printTimeSteps)
                 {
                     std::stringstream str;
-                    str << "ProcRank = " << procRank << "\nSend stop cell.\n" << std::endl;
+                    str << "ProcRank = " << procRank << "\nSend start cell.\n" << std::endl;
                     MPI_File_write_shared(log, str.str().c_str(), str.tellp(), MPI_CHAR, MPI_STATUS_IGNORE);
                 }
 
-                stopCellSender = domain.GetStopInnerCell();
-                MPI_Ssend(&stopCellSender, 1, MPI_DOUBLE, procRank - 1, SyncBoundary, MPI_COMM_WORLD);
+                startCellSender = domain.GetStartInnerCell();
+                MPI_Ssend(&startCellSender, 1, MPI_DOUBLE, procRank - 1, SyncBoundary, MPI_COMM_WORLD);
             }
         }
 
@@ -272,7 +280,7 @@ int main(int argc, char* argv[])
         fullMesh[0] = *domain.GetLeftCell();
 
         for (size_t st = 0; st < meshSize; st++)
-            fullMesh.get()[st + 1] = domain.GetMesh().GetInnerCells()[meshSize - st - 1];
+            fullMesh.get()[st + 1] = domain.GetMesh().GetInnerCells()[st];
 
         if (printTimeSteps)
         {
@@ -282,38 +290,11 @@ int main(int argc, char* argv[])
         }
 
         for (int st = 1; st < procsCount - 1; st++)
-        {
             MPI_Recv(fullMesh.get() + meshSize * st + 1, meshSize * sizeof(Mesh::MeshCell), MPI_CHAR, st, SyncWrite, MPI_COMM_WORLD, nullptr);
-            if (st % 2 == 0)
-            {
-                Mesh::MeshCell* start = fullMesh.get() + meshSize * st + 1;
-                Mesh::MeshCell* stop  = fullMesh.get() + meshSize * st + 1 + meshSize - 1;
-                while (start < stop)
-                {
-                    Mesh::MeshCell tmp = *start;
-                    *start = *stop;
-                    *stop = tmp;
-                    start++;
-                    stop--;
-                }
-            }
-        }
+
         if (procsCount - 1 > 0)
         {
             MPI_Recv(fullMesh.get() + 1 + meshSize * (procsCount - 1), lastMeshSize * sizeof(Mesh::MeshCell), MPI_CHAR, procsCount - 1, SyncWrite, MPI_COMM_WORLD, nullptr);
-            if ((procsCount - 1) % 2 == 0)
-            {
-                Mesh::MeshCell* start = fullMesh.get() + 1 + meshSize * (procsCount - 1);
-                Mesh::MeshCell* stop  = fullMesh.get() + 1 + meshSize * (procsCount - 1) + lastMeshSize - 1;
-                while (start < stop)
-                {
-                    Mesh::MeshCell tmp = *start;
-                    *start = *stop;
-                    *stop = tmp;
-                    start++;
-                    stop--;
-                }
-            }
 
             Mesh::MeshCell RB = {};
             MPI_Recv(&RB, sizeof(Mesh::MeshCell), MPI_DOUBLE, procsCount - 1, SyncEndBoundary, MPI_COMM_WORLD, nullptr);

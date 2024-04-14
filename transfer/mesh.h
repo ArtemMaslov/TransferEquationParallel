@@ -44,7 +44,7 @@ private:
     MeshCell* const StopBoundary;
 
 public:
-    Mesh(size_t meshSize, double xLeft, Direction dir);
+    Mesh(size_t meshSize, double xLeft);
 
     double GetValue(size_t xIndex, Time time) const;
 
@@ -64,7 +64,7 @@ public:
     const MeshCell* GetStartCell() const;
     const MeshCell* GetStopCell() const;
 
-    std::stringstream Print(Direction dir, Time time) const;
+    std::stringstream Print(Time time) const;
 
     MeshType GetType() const
     {
