@@ -50,6 +50,7 @@ struct GConfig
 
 double IntFunct(double x)
 {
+    //return (sin(1/x)*sin(1/x))/(x*x);
     return sin(1/x)/x;
 }
 
