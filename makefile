@@ -66,4 +66,53 @@ ttr: tr
 
 #############################################################################################################################
 
-.PHONY: spi pi st tpi st t str run_tr
+size=5000
+flag=-DDIFF_FILES=false -DISIZE=${size} -DJSIZE=${size} -Wall -O2
+
+obj/seq_t1: obj parallel_cycles/seq_t1.cpp
+	g++ parallel_cycles/seq_t1.cpp ${flag} -o obj/seq_t1 -lm
+
+obj/seq_t1d: obj parallel_cycles/seq_t1d.cpp
+	g++ parallel_cycles/seq_t1d.cpp ${flag} -o obj/seq_t1d -lm
+
+obj/seq_t2v: obj parallel_cycles/seq_t2v.cpp
+	g++ parallel_cycles/seq_t2v.cpp ${flag} -o obj/seq_t2v -lm
+
+obj/par_mp_t1: obj parallel_cycles/par_mp_t1.cpp
+	g++ parallel_cycles/par_mp_t1.cpp ${flag} -fopenmp  -o obj/par_mp_t1 -lm -fopenmp
+
+obj/par_mp_t1d: obj parallel_cycles/par_mp_t1d.cpp
+	g++ parallel_cycles/par_mp_t1d.cpp ${flag} -fopenmp  -o obj/par_mp_t1d -lm -fopenmp
+
+obj/par_mpi_t1: obj parallel_cycles/par_mpi_t1.cpp
+	mpic++ parallel_cycles/par_mpi_t1.cpp ${flag} -o obj/par_mpi_t1 -lm  -lmpi 
+
+obj/par_mpi_t2v: obj parallel_cycles/par_mpi_t2v.cpp
+	mpic++ parallel_cycles/par_mpi_t2v.cpp ${flag} -o obj/par_mpi_t2v -lm  -lmpi 
+
+t1: obj obj/seq_t1 obj/par_mp_t1 obj/par_mpi_t1
+	./obj/seq_t1
+	./obj/par_mp_t1
+	mpirun -np 4 ./obj/par_mpi_t1
+
+# export OMP_NUM_THREADS=4
+par_mp_t1: obj obj/par_mp_t1
+	./obj/par_mp_t1
+par_mp_t1d: obj obj/par_mp_t1d
+	./obj/par_mp_t1d
+
+par_mpi_t1: obj obj/par_mpi_t1
+	mpirun -np 4 ./obj/par_mpi_t1
+par_mpi_t2v: obj obj/par_mpi_t2v
+	mpirun -np 4 ./obj/par_mpi_t2v
+
+seq_t1: obj obj/seq_t1
+	./obj/seq_t1
+seq_t1d: obj obj/seq_t1d
+	./obj/seq_t1d
+seq_t2v: obj obj/seq_t2v
+	./obj/seq_t2v
+
+#############################################################################################################################
+
+.PHONY: spi pi st tpi st t str run_tr pc_t1 t1 seq_t1 par_mp_t1 par_mpi_t1
